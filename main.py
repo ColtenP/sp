@@ -11,6 +11,10 @@ from scipy.stats import lognorm
 from scipy.stats import nbinom
 from scipy.stats import norm
 
+# For Testing Purposes
+# If you want to make changes to the script and see if the numbers are the same, set this to True
+deterministic = False
+
 # Parameters for Negative Binomial (NB) distribution
 rNB = 26  # r parameter
 bNB = 0.568  # Beta parameter
@@ -118,7 +122,9 @@ def generate_output_document(run_result):
 
 
 def calculate_loss_for_insurer_and_reinsurer(run_count, iteration, o):
-    np.random.seed(run_count * iteration * o)
+    if deterministic:
+        np.random.seed(run_count * iteration * o)
+
     k = np.random.uniform(low=0, high=1, size=1)[0]  # array
 
     if k <= w:
@@ -199,8 +205,8 @@ def run_monte_carlo_round(run_count):
     surplus_losses = []  # array for aggregate reinsurance's losses
 
     for j in range(1, n):
-        # Generate random numbers from NB:
-        y = nbinom.rvs(rNB, bNB, size=1, random_state=run_count * j)[0]  # Number of claims for INSURER
+        # Number of claims for INSURER
+        y = nbinom.rvs(rNB, bNB, size=1, random_state=run_count * j if deterministic else None)[0]
 
         # array for claims severity or claims losses of the INSURER
         # array for claims severity or claims losses of the REINSURER
