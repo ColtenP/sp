@@ -2,6 +2,7 @@ import json
 import math
 import statistics
 import sys
+import pathlib
 from multiprocessing import Pool, cpu_count
 from textwrap import dedent
 
@@ -242,6 +243,14 @@ def run_monte_carlo_round(run_count):
 def main(stops):
     total_runs = max(stops)
 
+    # Ensure the results folder exists before continuing
+    pathlib.Path("./results").mkdir(parents=False, exist_ok=True)
+
+    print(dedent(f'''
+        Starting simulation, there will be results generated at the run counts of: {", ".join(map(str, stops))}
+        The results will be generated while the simulation runs, and can be found in the results folder.
+    ''')[1:-1])
+
     # Create a Multiprocessing Pool, this will allow us to run multiple simulations at the same time, rather than
     # having to complete one simulation before starting the next, once the simulations are complete we then can
     # take each simulation's result then calculate the result
@@ -283,6 +292,21 @@ def main(stops):
 
                 write_run_result_to_disk(run_result)
 
+    print(dedent(f'''
+        Completed the simulation with {total_runs} cycles completed.
+        All of the results have been written out to the results folder.
+    ''')[1:-1])
+
 
 if __name__ == '__main__':
-    main([100, 1_000, 10_000, 100_000, 1_000_000])
+    try:
+        user_provided_stops = [int(stop) for stop in sys.argv[1].split(',')]
+
+        main(user_provided_stops)
+    except ValueError:
+        exit('All of the supplied values must be integers')
+    except IndexError:
+        user_provided_stops = [100, 1000, 1000]
+        print(f'No stops provided, using {", ".join(map(str, user_provided_stops))}')
+
+    main(user_provided_stops)
